@@ -28,11 +28,12 @@ public class Practica1EP2 {
         int opcion = 0;
         Scanner scanner = new Scanner(System.in);
         
-        while(opcion != 7) {
+        while(opcion != 8) {
             
             //Menu ccon las opciones
             System.out.println("\nElige una opción:" + "\n1-Alta de usuario" + "\n2-Alta objeto" + "\n3-Alquiler de objeto"
-                + "\n4-Listar todos los objetos" + "\n5-Baja de objeto" + "\n6-Mostrar saldo" + "\n7-Salir\n");
+                + "\n4-Listar todos los objetos" + "\n5-Baja de objeto" + "\n6-Mostrar saldo" 
+                + "\n7-Cambiar importe" + "\n8-Salir\n");
             
             System.out.println("Opcion: ");
             
@@ -104,6 +105,17 @@ public class Practica1EP2 {
                         System.out.println("No hay usuario registrados\n");
                     break;
                 case 7:
+                    if(sig_usuario != 1 && sig_objeto != 1) {
+                        System.out.println("Cambio de importe:\n");
+                        us = ElegirUsuario(usuarios, scanner);
+                        obj = ElegirObjetoDelUsuario(us, scanner);
+                        if(obj != null)
+                            CambiarImporte(obj, scanner);
+                    }
+                    else
+                        System.out.println("No hay usuarios u objetos suficientes registrados");
+                    break;
+                case 8:
                     System.out.println("Hasta otra");
                     break;
                 default:
@@ -633,5 +645,21 @@ public class Practica1EP2 {
                             System.out.println("\t\tEl objeto " + o.GetID() + " no tiene prestamos asociados\n");
                     }
         }
+    }
+
+    private static void CambiarImporte(Objeto obj, Scanner scanner) {
+        float importe = -1;
+        
+        do {
+            try {
+                System.out.println("Introduce el nuevo precio (en euros) por dia de alquiler del producto (ejemplo: 25,35): ");
+                importe = scanner.nextFloat();
+            } catch (Exception e) {
+                System.out.println("Introduce un valor correcto");
+                scanner.next();
+            }
+        } while (importe <= 0);
+        
+        obj.SetImporte(importe);
     }
 }

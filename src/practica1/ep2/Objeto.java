@@ -76,4 +76,8 @@ public class Objeto {
     public void AñadirPrestamo(Prestamo pr) {
        prestamos.add(pr);
     }
+
+    void SetImporte(float importe) {
+        precio = importe;
+    }
 }
