@@ -1,0 +1,12 @@
+PROPIETARIO: 1
+Nombre del propietario: asd
+Correo electronico: asd@uv.es
+	OBJETOS DEL PROPIETARIO 1
+
+	Codigo del objeto: 1
+	Descripcion: palo
+	Fecha disponibilidad: 20/10/2018 - 12/12/2020
+	Coste del prestamo por dia: 25.0
+		PRESTAMOS DEL OBJETO: 1
+		Nombre del cliente: qwe		Fechas del prestamos: 11/11/2018 - 21/11/2018		Importe para el propietario: 250.0		Importe para la startup: 25.0
+Importe total caluculado para la startup: 25.0

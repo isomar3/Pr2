@@ -1,6 +1,10 @@
 package practica1.ep2;
 
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -18,7 +22,7 @@ import java.util.regex.Pattern;
  */
 public class Practica1EP2 {
 
-    public static void main(String[] args) throws InterruptedException, ParseException {
+    public static void main(String[] args) throws InterruptedException, ParseException, IOException {
         ArrayList<Usuario> usuarios = new ArrayList<>();
         int sig_usuario = 1,
             sig_objeto = 1;
@@ -28,13 +32,13 @@ public class Practica1EP2 {
         int opcion = 0;
         Scanner scanner = new Scanner(System.in);
         
-        while(opcion != 8) {
+        while(opcion != 9) {
             
             //Menu ccon las opciones
             System.out.println("\nElige una opción:" + "\n1-Alta de usuario" + "\n2-Alta objeto" + "\n3-Alquiler de objeto"
                 + "\n4-Listar todos los objetos" + "\n5-Baja de objeto" + "\n6-Mostrar saldo" 
-                + "\n7-Cambiar importe" + "\n8-Salir\n");
-            
+                + "\n7-Cambiar importe" + "\n8-Guardar prestamos" + "\n9-Salir\n");
+             
             System.out.println("Opcion: ");
             
             //Mientras nos den una opcion no valida, preguntarla
@@ -116,6 +120,14 @@ public class Practica1EP2 {
                         System.out.println("No hay usuarios u objetos suficientes registrados");
                     break;
                 case 8:
+                    if(sig_usuario != 1) {
+                        System.out.println("Se van a guardar los usuarios y sus prestamos en un archivo:\n");
+                        GuardarDBDetalle(usuarios);
+                    }
+                    else
+                        System.out.println("No hay usuario registrados\n");
+                    break;
+                case 9:
                     System.out.println("Hasta otra");
                     break;
                 default:
@@ -601,7 +613,6 @@ public class Practica1EP2 {
             
             if (ok) {
                 InformacionUsuario(u);
-                System.out.println("Objetos disponibles");
                 for(Objeto o: u.getObjetos()) {
                     if(o.GetPrestamos().size() > 0) {
                         InformacionObjeto(o, formato);
@@ -611,7 +622,6 @@ public class Practica1EP2 {
                         }   
                     }
                 }
-                System.out.println("Objetos borrados");
                 for(Objeto o: u.getObjetosBorrados()) {
                     if(o.GetPrestamos().size() > 0) {
                         InformacionObjeto(o, formato);
@@ -646,7 +656,13 @@ public class Practica1EP2 {
                     }
         }
     }
-
+    
+    /**
+     * Funcion que oremite cambiar el precio de alquiler de un objeto
+     * 
+     * @param obj Objeto del que se va a cambiar el precio
+     * @param scanner Para lectura de datos
+     */
     private static void CambiarImporte(Objeto obj, Scanner scanner) {
         float importe = -1;
         
@@ -661,5 +677,115 @@ public class Practica1EP2 {
         } while (importe <= 0);
         
         obj.SetImporte(importe);
+    }
+
+    /**
+     * Funcion que guarda las informacion detallada del los usuarios en un fichero
+     * 
+     * @param usuarios Informacion de los usuarios a guardar
+     * @throws IOException 
+     */
+    private static void GuardarDBDetalle(ArrayList<Usuario> usuarios) throws IOException {
+        try {
+            FileWriter archivo = new FileWriter("src/saldos.txt");
+            PrintWriter pw = new PrintWriter(archivo);
+            SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+            boolean ok;
+            float total;
+
+            for(Usuario u: usuarios) {
+                total = 0;
+                ok = false;
+                if (u.getObjetos().size() > 0 || u.getObjetosBorrados().size() > 0) {
+                    for(Objeto o: u.getObjetos()) {
+                        if(o.GetPrestamos().size() > 0) {
+                                ok = true;
+                        }
+                    }
+                    for(Objeto o: u.getObjetosBorrados()) {
+                        if(o.GetPrestamos().size() > 0)
+                            ok = true;
+                    }
+                }
+
+                if (ok) {
+                    GuardarInformacionUsuario(u, pw);
+                    for(Objeto o: u.getObjetos()) {
+                        if(o.GetPrestamos().size() > 0) {
+                            GuardarInformacionObjeto(o, formato, pw);
+                            for(Prestamo pr: o.GetPrestamos()){
+                                GuardarInformacionPrestamos(pr, formato, pw);
+                                total += pr.GetImporteStartup();
+                            }   
+                        }
+                    }
+                    for(Objeto o: u.getObjetosBorrados()) {
+                        if(o.GetPrestamos().size() > 0) {
+                            GuardarInformacionObjeto(o, formato, pw);
+                            for(Prestamo pr: o.GetPrestamos()){
+                                GuardarInformacionPrestamos(pr, formato, pw);
+                                total += pr.GetImporteStartup();
+                            }   
+                        }
+                    }
+                    pw.write("Importe total caluculado para la startup: " + total + "\n");
+                }
+            }
+            pw.close();
+        } catch (Exception e) {
+            System.out.println("Error guardando el fichero");
+        }
+        
+    }
+
+    /**
+     * Funcion que guarda la informacion de un usuario en un fichero
+     * 
+     * @param u Usuario a guardar
+     * @param pw Para escribir en el fichero
+     */
+    private static void GuardarInformacionUsuario(Usuario u, PrintWriter pw) {
+        try {
+            pw.write("PROPIETARIO: " + u.GetID() + "\n");
+            pw.write("Nombre del propietario: " + u.GetNombre() + "\n");
+            pw.write("Correo electronico: " + u.GetCorreo() + "\n");
+            pw.write("\tOBJETOS DEL PROPIETARIO " + u.GetID() + "\n");
+        } catch (Exception e)  {
+            System.out.println("Error el ecribir un usuario en el fichero");
+        }
+            
+    }
+
+    /**
+     * Funcion que escribe un objeto en el fichero
+     * 
+     * @param o Obketo a escribir
+     * @param formato Formato para las fechas
+     * @param pw Para escribir en el fichero
+     */
+    private static void GuardarInformacionObjeto(Objeto o, SimpleDateFormat formato, PrintWriter pw) {
+        try {
+            pw.write("\n\tCodigo del objeto: " + o.GetID() + "\n");
+            pw.write("\tDescripcion: " + o.GetDescripcion() + "\n");
+            pw.write("\tFecha disponibilidad: " + formato.format(o.GetFechaInicio()) + " - " + formato.format(o.GetFechaFin()) + "\n");
+            pw.write("\tCoste del prestamo por dia: " + o.GetPrecio() + "\n");
+            pw.write("\t\tPRESTAMOS DEL OBJETO: " + o.GetID() + "\n");
+        } catch (Exception e) {
+            System.out.println("Error al escribir un objeto en el fichero");
+        }
+    }
+
+    /**
+     * Funcion que escribe un prestamo en el fichero
+     * 
+     * @param pr Prestamo  a escribir
+     * @param formato Formato para las fechas
+     * @param pw Para escribir en el fichero
+     */
+    private static void GuardarInformacionPrestamos(Prestamo pr, SimpleDateFormat formato, PrintWriter pw) {
+        pw.write("\t\tNombre del cliente: " + pr.GetNombreCliente() + "\n");
+        pw.write("\t\tFechas del prestamos: " + formato.format(pr.GetInicio()) + " - " + formato.format(pr.GetFin()) + "\n");
+        pw.write("\t\tImporte para el propietario: " + pr.GetImportePropietario() + "\n");
+        pw.write("\t\tImporte para la startup: " + pr.GetImporteStartup() + "\n");
     }
 }
