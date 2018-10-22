@@ -1,6 +1,5 @@
 package practica1.ep2;
 
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -26,18 +25,19 @@ public class Practica1EP2 {
         ArrayList<Usuario> usuarios = new ArrayList<>();
         int sig_usuario = 1,
             sig_objeto = 1;
+        int num_us = 0, num_obj = 0, num_pr = 0;
         Usuario us;
         Objeto obj;
         boolean ok;
         int opcion = 0;
         Scanner scanner = new Scanner(System.in);
         
-        while(opcion != 9) {
+        while(opcion != 10) {
             
             //Menu ccon las opciones
             System.out.println("\nElige una opción:" + "\n1-Alta de usuario" + "\n2-Alta objeto" + "\n3-Alquiler de objeto"
                 + "\n4-Listar todos los objetos" + "\n5-Baja de objeto" + "\n6-Mostrar saldo" 
-                + "\n7-Cambiar importe" + "\n8-Guardar prestamos" + "\n9-Salir\n");
+                + "\n7-Cambiar importe" + "\n8-Guardar prestamos" + "\n9-Eliminar usuario" + "\n10-Salir\n");
              
             System.out.println("Opcion: ");
             
@@ -59,24 +59,28 @@ public class Practica1EP2 {
                     System.out.println("Se va a introducir un nuevo usuario:\n");
                     AltaUsuario(scanner, sig_usuario, usuarios);
                     sig_usuario++;
+                    num_us++;
                     break;
                 case 2:
-                    if(!(sig_usuario == 1)) {
+                    if((num_us > 0)) {
                         System.out.println("Se va a introducir un nuevo objeto:\n");
                         us = ElegirUsuario(usuarios, scanner);
                         AltObjeto(scanner, sig_objeto, us);
                         sig_objeto++;
+                        num_obj++;
                     }
                     else
                         System.out.println("No hay usuarios registrados");
                     break;
                 case 3:
-                    if (sig_usuario > 2 && sig_objeto != 1) {
+                    if (num_us >= 2 && num_obj >= 1) {
                         System.out.println("Se va a alquilar un objeto, indica el usario que va a realizar el alquiler:\n");
                         us = ElegirUsuario(usuarios, scanner);
                         obj = ElegirObjeto(usuarios, us, scanner);
-                        if(obj != null)
+                        if(obj != null) {
                             AltaPrestamo(us, obj, scanner);
+                            num_pr++;
+                        }
                     }
                     else
                         System.out.println("No hay usuarios suficientes u objetos suficientes");
@@ -90,18 +94,20 @@ public class Practica1EP2 {
                         System.out.println("No hay usuario registrados\n");
                     break;
                 case 5:
-                    if (sig_usuario > 1 && sig_objeto != 1) {
+                    if (num_us > 0 && num_obj >= 1) {
                         System.out.println("Borrado de un objeto:\n");
                         us = ElegirUsuario(usuarios, scanner);
                         obj = ElegirObjetoDelUsuario(us, scanner);
-                        if(obj != null)
+                        if(obj != null) {
                             BorrarObjeto(us, obj);
+                            num_obj--;
+                        }
                     }
                     else
                         System.out.println("No hay usuarios u objetos registrados");
                     break;
                 case 6:
-                    if(sig_usuario != 1) {
+                    if(num_us >= 1 && num_pr >= 1) {
                         System.out.println("Lista de usuarios con prestamos en detalle:\n");
                         MostrartBDDetalle(usuarios);
                     }
@@ -109,7 +115,7 @@ public class Practica1EP2 {
                         System.out.println("No hay usuario registrados\n");
                     break;
                 case 7:
-                    if(sig_usuario != 1 && sig_objeto != 1) {
+                    if(num_us >= 1 && num_obj >= 1) {
                         System.out.println("Cambio de importe:\n");
                         us = ElegirUsuario(usuarios, scanner);
                         obj = ElegirObjetoDelUsuario(us, scanner);
@@ -120,14 +126,24 @@ public class Practica1EP2 {
                         System.out.println("No hay usuarios u objetos suficientes registrados");
                     break;
                 case 8:
-                    if(sig_usuario != 1) {
+                    if(num_us >= 1 && num_pr >= 1) {
                         System.out.println("Se van a guardar los usuarios y sus prestamos en un archivo:\n");
                         GuardarDBDetalle(usuarios);
                     }
                     else
-                        System.out.println("No hay usuario registrados\n");
+                        System.out.println("No hay usuarios o prestamos registrados\n");
                     break;
                 case 9:
+                    if(num_us >= 1) {
+                        us = ElegirUsuario(usuarios, scanner);
+                        EliminarUsuario(us, usuarios);
+                        num_us--;
+                    }
+                    else {
+                        System.out.println("No hay usuarios registrados");
+                    }
+                    break;
+                case 10:
                     System.out.println("Hasta otra");
                     break;
                 default:
@@ -787,5 +803,20 @@ public class Practica1EP2 {
         pw.write("\t\tFechas del prestamos: " + formato.format(pr.GetInicio()) + " - " + formato.format(pr.GetFin()) + "\n");
         pw.write("\t\tImporte para el propietario: " + pr.GetImportePropietario() + "\n");
         pw.write("\t\tImporte para la startup: " + pr.GetImporteStartup() + "\n");
+    }
+
+    /**
+     * Funcion que borra un usuario de la base de datos
+     * 
+     * @param us Usuario a borrar
+     * @param usuarios Lista de usuario del sistema
+     */
+    private static void EliminarUsuario(Usuario us, ArrayList<Usuario> usuarios) {
+        try {
+           usuarios.remove(us);
+           System.out.println("Usuario borrado con exito");
+        } catch (Exception e) {
+            System.out.println("Error al borrar usuario");
+        }
     }
 }
